@@ -124,16 +124,18 @@ public class DictionaryRepositoryTests
     public void Update_ErrorsIfModelIsTemporary()
     {
         var (repo, _) = Repo();
-        Assert.Throws<InvalidOperationException>(() =>
-            repo.Update(Model(JaneDoe)));
+        var result = repo.Update(Model(JaneDoe));
+        Assert.IsTrue(result.IsLeft);
+        result.IfLeft(error => Assert.AreEqual(HttpStatusCode.BadRequest, error.Code));
     }
 
     [Test]
     public void Update_ErrorsIfModelNotInRepository()
     {
         var (repo, _) = Repo();
-        Assert.Throws<InvalidOperationException>(() =>
-            repo.Update(Model(JaneDoe, true)));
+        var result = repo.Update(Model(JaneDoe, true));
+        Assert.IsTrue(result.IsLeft);
+        result.IfLeft(error => Assert.AreEqual(HttpStatusCode.BadRequest, error.Code));
     }
 
     [Test]
