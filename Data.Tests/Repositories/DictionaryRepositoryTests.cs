@@ -96,15 +96,14 @@ public class DictionaryRepositoryTests
     }
 
     [Test]
-    public void ReadAll_ThrowsIfQueryIsNull()
+    public void ReadAll_ReturnsAllModelsIfNoQueryPassed()
     {
-        var (repo, _) = Repo();
-        Assert.Throws<NullReferenceException>(() =>
-            repo.ReadAll(null!));
+        var (repo, models) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
+        CollectionAssert.AreEquivalent(models, repo.ReadAll());
     }
 
     [Test]
-    public void ReadAll_ReturnsCorrectModels()
+    public void ReadAll_ReturnsCorrectModelsForQuery()
     {
         var (repo, _) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
         CollectionAssert.AreEquivalent(

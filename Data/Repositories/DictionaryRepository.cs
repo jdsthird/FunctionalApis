@@ -32,7 +32,10 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
 
     public Option<TModel> Read(Id<TId> id) => _items.Get(id);
 
-    public ImmutableList<TModel> ReadAll(TQuery query) => query.Filter(_items.Values);
+    public ImmutableList<TModel> ReadAll(Option<TQuery> query = default) =>
+        query.Match(
+            q => q.Filter(_items.Values),
+            () => _items.Values.ToImmutableList());
 
     public Either<StatusCodeError, TModel> Update(TModel model)
     {
