@@ -13,6 +13,6 @@ public interface IRepository<TModel, TId, in TQuery>
     Either<StatusCodeError, TModel> Create(TModel model);
     Option<TModel> Read(Id<TId> id);
     ImmutableList<TModel> ReadAll(TQuery query);
-    // TODO: Update
+    TModel Update(TModel model);
     Unit Destroy(TModel model);
 }

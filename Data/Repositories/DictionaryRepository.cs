@@ -34,6 +34,17 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
 
     public ImmutableList<TModel> ReadAll(TQuery query) => query.Filter(_items.Values);
 
+    public TModel Update(TModel model)
+    {
+        if (model.Id.IsTemporary)
+            throw new InvalidOperationException("Model has not yet been created");
+
+        if (!_items.ContainsKey(model.Id))
+            throw new InvalidOperationException("Model not in repository");
+
+        return _items[model.Id] = model;
+    }
+
     public Unit Destroy(TModel model)
     {
         _items.Remove(model.Id);

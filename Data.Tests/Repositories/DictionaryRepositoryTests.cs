@@ -113,6 +113,47 @@ public class DictionaryRepositoryTests
     }
 
     [Test]
+    public void Update_ErrorsIfModelIsNull()
+    {
+        var (repo, _) = Repo();
+        Assert.Throws<NullReferenceException>(() =>
+            repo.Update(null!));
+    }
+
+    [Test]
+    public void Update_ErrorsIfModelIsTemporary()
+    {
+        var (repo, _) = Repo();
+        Assert.Throws<InvalidOperationException>(() =>
+            repo.Update(Model(JaneDoe)));
+    }
+
+    [Test]
+    public void Update_ErrorsIfModelNotInRepository()
+    {
+        var (repo, _) = Repo();
+        Assert.Throws<InvalidOperationException>(() =>
+            repo.Update(Model(JaneDoe, true)));
+    }
+
+    [Test]
+    public void Update_ReturnsModelUnchangedWhenSuccessful()
+    {
+        var (repo, models) = Repo(JaneDoe);
+        var updatedModel = models.Single() with {Name = JaneSmith};
+        Assert.AreEqual(updatedModel, repo.Update(updatedModel));
+    }
+
+    [Test]
+    public void Update_UpdatesModelInRepo()
+    {
+        var (repo, models) = Repo(JaneDoe);
+        var updatedModel = models.Single() with {Name = JaneSmith};
+        repo.Update(updatedModel);
+        Assert.AreEqual(updatedModel, (TestModel)repo.Read(updatedModel.Id));
+    }
+
+    [Test]
     public void Destroy_ThrowsWhenModelIsNull()
     {
         var (repo, _) = Repo();
