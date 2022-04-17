@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Data.Models;
 using Data.Repositories;
+using LanguageExt;
 using NUnit.Framework;
 
 namespace DataTests.Repositories;
@@ -100,6 +101,14 @@ public class DictionaryRepositoryTests
         var (repo, _) = Repo();
         Assert.Throws<NullReferenceException>(() =>
             repo.Destroy(null!));
+    }
+
+    [Test]
+    public void Destroy_DoesNotErrorWhenModelNotInRepo()
+    {
+        var (repo, _) = Repo();
+        var model = Model(JaneDoe);
+        Assert.AreEqual(Unit.Default, repo.Destroy(model));
     }
 
     [Test]
