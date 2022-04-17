@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Net;
+using Data.Errors;
 using Data.Models;
 using LanguageExt;
 using Utilities;
@@ -19,10 +21,10 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         _idGenerator = idGenerator.ThrowIfNull();
     }
 
-    public TModel Create(TModel model)
+    public Either<StatusCodeError, TModel> Create(TModel model)
     {
         if (!model.Id.IsTemporary)
-            throw new InvalidOperationException("Model already has a permanent id.");
+            return new StatusCodeError(HttpStatusCode.BadRequest, "Model already has a permanent id.");
 
         var id = Id<TId>.PermanentId(_idGenerator());
         return _items[id] = model with {Id = id};

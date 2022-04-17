@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Data.Errors;
 using Data.Models;
 using LanguageExt;
 
@@ -9,7 +10,7 @@ public interface IRepository<TModel, TId, in TQuery>
     where TId : notnull
     where TQuery : IQuery<TModel>
 {
-    TModel Create(TModel model);
+    Either<StatusCodeError, TModel> Create(TModel model);
     Option<TModel> Read(Id<TId> id);
     ImmutableList<TModel> ReadAll(TQuery query);
     // TODO: Update

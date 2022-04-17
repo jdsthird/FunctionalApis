@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net;
 using Data.Models;
 using Data.Repositories;
 using LanguageExt;
@@ -18,12 +19,19 @@ public class DictionaryRepositoryTests
     
     private static readonly Func<Guid> IdGenerator = Guid.NewGuid;
 
-    private static TestModel Model(string name) => new(Id<Guid>.TemporaryId(IdGenerator()), name);
-    
+    private static TestModel Model(string name, bool isPermanent = false)
+    {
+        var idValue = IdGenerator();
+        var id = isPermanent
+            ? Id<Guid>.PermanentId(idValue)
+            : Id<Guid>.TemporaryId(idValue);
+        return new TestModel(id, name);
+    }
+
     private static (TestRepo repo, ImmutableList<TestModel> models) Repo(params string[] names)
     {
         var repo = new TestRepo(IdGenerator);
-        return (repo, names.Map(name => repo.Create(Model(name))).ToImmutableList());
+        return (repo, names.Map(name => repo.Create(Model(name)).RightAsEnumerable().First()).ToImmutableList());
     }
 
     [Test]
@@ -33,13 +41,22 @@ public class DictionaryRepositoryTests
         Assert.Throws<NullReferenceException>(() =>
             repo.Create(null!));
     }
+
+    [Test]
+    public void Create_FailsIfModelIsPermanent()
+    {
+        var (repo, _) = Repo();
+        var result = repo.Create(Model(JaneDoe, true));
+        Assert.IsTrue(result.IsLeft);
+        result.IfLeft(error => Assert.AreEqual(HttpStatusCode.BadRequest, error.Code));
+    }
     
     [Test]
     public void Create_SetsAPermanentId()
     {
         var (repo, _) = Repo();
         var temporary = new TestModel(Id<Guid>.TemporaryId(IdGenerator()), JaneDoe);
-        var (permanentId, permanentName) = repo.Create(temporary);
+        var (permanentId, permanentName) = repo.Create(temporary).RightAsEnumerable().First();
         Assert.AreEqual(JaneDoe, permanentName);
         Assert.IsFalse(permanentId.IsTemporary);
         Assert.AreNotEqual(temporary.Id, permanentId);
@@ -50,7 +67,7 @@ public class DictionaryRepositoryTests
     {
         var (repo, _) = Repo();
         var temporary = Model(JaneDoe);
-        var permanent = repo.Create(temporary);
+        var permanent = repo.Create(temporary).RightAsEnumerable().First();
         var read = repo.Read(permanent.Id);
         Assert.AreEqual(permanent, (TestModel)read);
     }
