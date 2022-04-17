@@ -51,7 +51,7 @@ public class DictionaryRepositoryTests
         var temporary = Model(JaneDoe);
         var permanent = repo.Create(temporary);
         var read = repo.Read(permanent.Id);
-        Assert.AreEqual(permanent, read);
+        Assert.AreEqual(permanent, (TestModel)read);
     }
 
     [Test]
@@ -63,11 +63,10 @@ public class DictionaryRepositoryTests
     }
 
     [Test]
-    public void Read_ThrowsIfIdMissing()
+    public void Read_ReturnsNoneIfIdMissing()
     {
         var (repo, _) = Repo();
-        Assert.Throws<KeyNotFoundException>(() =>
-            repo.Read(Id<Guid>.TemporaryId(IdGenerator())));
+        Assert.IsTrue(repo.Read(Id<Guid>.TemporaryId(IdGenerator())).IsNone);
     }
 
     [Test]
@@ -75,7 +74,7 @@ public class DictionaryRepositoryTests
     {
         var (repo, models) = Repo(JaneDoe);
         var model = models.Single();
-        Assert.AreEqual(model, repo.Read(model.Id));
+        Assert.AreEqual(model, (TestModel)repo.Read(model.Id));
     }
 
     [Test]
@@ -109,8 +108,7 @@ public class DictionaryRepositoryTests
         var (repo, models) = Repo(JaneDoe);
         var model = models.Single();
         repo.Destroy(model);
-        Assert.Throws<KeyNotFoundException>(() =>
-            repo.Read(model.Id));
+        Assert.IsTrue(repo.Read(model.Id).IsNone);
     }
 
     private record TestModel(Id<Guid> Id, string Name) : Model<Guid>(Id);

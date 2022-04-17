@@ -28,7 +28,7 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         return _items[id] = model with {Id = id};
     }
 
-    public TModel Read(Id<TId> id) => _items[id];
+    public Option<TModel> Read(Id<TId> id) => _items.Get(id);
 
     public ImmutableList<TModel> ReadAll(TQuery query) => query.Filter(_items.Values);
 

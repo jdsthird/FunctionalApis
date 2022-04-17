@@ -10,7 +10,7 @@ public interface IRepository<TModel, TId, in TQuery>
     where TQuery : IQuery<TModel>
 {
     TModel Create(TModel model);
-    TModel Read(Id<TId> id);
+    Option<TModel> Read(Id<TId> id);
     ImmutableList<TModel> ReadAll(TQuery query);
     // TODO: Update
     Unit Destroy(TModel model);
