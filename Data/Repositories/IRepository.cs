@@ -11,8 +11,8 @@ public interface IRepository<TModel, TId, TQuery>
     where TQuery : IQuery<TModel>
 {
     Either<StatusCodeError, TModel> Create(TModel model);
-    Option<TModel> Read(Id<TId> id);
-    ImmutableList<TModel> ReadAll(Option<TQuery> query = default);
+    Either<StatusCodeError, TModel> Read(Id<TId> id);
+    Either<StatusCodeError, ImmutableList<TModel>> ReadAll(Option<TQuery> query = default);
     Either<StatusCodeError, TModel> Update(TModel model);
-    Unit Destroy(TModel model);
+    Either<StatusCodeError, Unit> Destroy(Id<TId> id);
 }

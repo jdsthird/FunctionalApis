@@ -16,7 +16,7 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
     private readonly Func<TId> _idGenerator;
     private readonly IDictionary<Id<TId>, TModel> _items = new ConcurrentDictionary<Id<TId>, TModel>();
 
-    public DictionaryRepository(Func<TId> idGenerator)
+    protected DictionaryRepository(Func<TId> idGenerator)
     {
         _idGenerator = idGenerator.ThrowIfNull();
     }
@@ -30,9 +30,10 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         return _items[id] = model with {Id = id};
     }
 
-    public Option<TModel> Read(Id<TId> id) => _items.Get(id);
+    public Either<StatusCodeError, TModel> Read(Id<TId> id) =>
+        _items.Get(id).ToEither(() => new StatusCodeError(HttpStatusCode.NotFound, $"Object not found with id {id}"));
 
-    public ImmutableList<TModel> ReadAll(Option<TQuery> query = default) =>
+    public Either<StatusCodeError, ImmutableList<TModel>> ReadAll(Option<TQuery> query = default) =>
         query.Match(
             q => q.Filter(_items.Values),
             () => _items.Values.ToImmutableList());
@@ -48,9 +49,9 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         return _items[model.Id] = model;
     }
 
-    public Unit Destroy(TModel model)
+    public Either<StatusCodeError, Unit> Destroy(Id<TId> id)
     {
-        _items.Remove(model.Id);
+        _items.Remove(id);
         return Unit.Default;
     }
 }

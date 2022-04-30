@@ -7,15 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="LanguageExt.Core" Version="4.0.4" />
+      <ProjectReference Include="..\Data\Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Utilities\Utilities.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Api" />
+      <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>
 
 </Project>

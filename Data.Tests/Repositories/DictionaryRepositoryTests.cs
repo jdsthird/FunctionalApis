@@ -7,6 +7,7 @@ using Data.Models;
 using Data.Repositories;
 using LanguageExt;
 using NUnit.Framework;
+using TestUtilities;
 
 namespace DataTests.Repositories;
 
@@ -84,7 +85,7 @@ public class DictionaryRepositoryTests
     public void Read_ReturnsNoneIfIdMissing()
     {
         var (repo, _) = Repo();
-        Assert.IsTrue(repo.Read(Id<Guid>.TemporaryId(IdGenerator())).IsNone);
+        repo.Read(Id<Guid>.TemporaryId(IdGenerator())).IsErrorWithCode(HttpStatusCode.NotFound);
     }
 
     [Test]
@@ -98,17 +99,20 @@ public class DictionaryRepositoryTests
     [Test]
     public void ReadAll_ReturnsAllModelsIfNoQueryPassed()
     {
-        var (repo, models) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
-        CollectionAssert.AreEquivalent(models, repo.ReadAll());
+        var (repo, expectedModels) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
+        repo.ReadAll().IsValid(models =>
+        CollectionAssert.AreEquivalent(expectedModels, models));
     }
 
     [Test]
     public void ReadAll_ReturnsCorrectModelsForQuery()
     {
         var (repo, _) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
-        CollectionAssert.AreEquivalent(
-            new[]{JaneDoe, JaneSmith},
-            repo.ReadAll(new TestQuery()).Map(model => model.Name));
+        var result = repo.ReadAll(new TestQuery());
+        result.IsValid(models =>
+            CollectionAssert.AreEquivalent(
+                new[] {JaneDoe, JaneSmith},
+                models.Map(model => model.Name)));
     }
 
     [Test]
@@ -155,10 +159,10 @@ public class DictionaryRepositoryTests
     }
 
     [Test]
-    public void Destroy_ThrowsWhenModelIsNull()
+    public void Destroy_ThrowsWhenIdIsNull()
     {
         var (repo, _) = Repo();
-        Assert.Throws<NullReferenceException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             repo.Destroy(null!));
     }
 
@@ -167,16 +171,16 @@ public class DictionaryRepositoryTests
     {
         var (repo, _) = Repo();
         var model = Model(JaneDoe);
-        Assert.AreEqual(Unit.Default, repo.Destroy(model));
+        Assert.AreEqual(Unit.Default, repo.Destroy(model.Id));
     }
 
     [Test]
     public void Destroy_RemovesModelFromRepo()
     {
         var (repo, models) = Repo(JaneDoe);
-        var model = models.Single();
-        repo.Destroy(model);
-        Assert.IsTrue(repo.Read(model.Id).IsNone);
+        var (id, _) = models.Single();
+        repo.Destroy(id);
+        repo.Read(id).IsErrorWithCode(HttpStatusCode.NotFound);
     }
 
     private record TestModel(Id<Guid> Id, string Name) : Model<Guid>(Id);

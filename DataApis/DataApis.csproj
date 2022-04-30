@@ -4,18 +4,17 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>Apis</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="LanguageExt.Core" Version="4.0.4" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.1.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Utilities\Utilities.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Api" />
+      <ProjectReference Include="..\Data\Data.csproj" />
     </ItemGroup>
 
 </Project>
