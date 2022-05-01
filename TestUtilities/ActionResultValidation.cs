@@ -7,7 +7,7 @@ namespace TestUtilities;
 public static class ActionResultValidation
 {
     public static Try<T> ValidateObjectResult<T>(this IActionResult result, int statusCode) =>
-        result.ValidateType<OkObjectResult>()
+        result.ValidateType<ObjectResult>()
             .Do(okObjectResult => Assert.AreEqual(statusCode, okObjectResult.StatusCode))
             .Bind(okObjectResult => okObjectResult.Value.ValidateType<T>());
 

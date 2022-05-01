@@ -2,6 +2,7 @@ using System;
 using System.Collections.Immutable;
 using Apis;
 using LanguageExt;
+using static LanguageExt.Prelude;
 using NUnit.Framework;
 using TestUtilities;
 
@@ -20,21 +21,28 @@ public class ReturnFormattingTests
 
     [Test]
     public void Return_Data_ReturnsANoContentResultForAnEmptyCollection() =>
-        ImmutableList<int>.Empty.Return().ValidateNoContentResult();
+        ImmutableList<int>.Empty
+            .Return()
+            .ValidateNoContentResult()
+            .IfFailThrow();
 
     [Test]
     public void Return_Data_ReturnsAnOkObjectResultForANonemptyCollection() =>
-        Integers.Return().ValidateOkObjectResult<int[]>()
+        Integers.Return()
+            .ValidateOkObjectResult<int[]>()
             .Bind(collection => collection.IsCollectionEqual(Integers))
             .IfFailThrow();
 
     [Test]
     public void Return_Data_ReturnsAnOkResultForUnit() =>
-        Unit.Default.Return().ValidateOkResult();
+        unit.Return()
+            .ValidateOkResult()
+            .IfFailThrow();
 
     [Test]
     public void Return_Data_ReturnsAnOkObjectResultForABasicObject() =>
-        3.Return().ValidateOkObjectResult<int>()
+        3.Return()
+            .ValidateOkObjectResult<int>()
             .Bind(result => result.IsEqual(3))
             .IfFailThrow();
 
@@ -44,7 +52,10 @@ public class ReturnFormattingTests
 
     [Test]
     public void Return_Option_ReturnsNotFoundResultForNone() =>
-        Option<int>.None.Return().ValidateNotFoundResult();
+        Option<int>.None
+            .Return()
+            .ValidateNotFoundResult()
+            .IfFailThrow();
 
     [Test]
     public void Return_Option_ThrowsExceptionWhenDataIsNull() =>
@@ -53,21 +64,28 @@ public class ReturnFormattingTests
 
     [Test]
     public void Return_Option_ReturnsANoContentResultForAnEmptyCollection() =>
-        ImmutableList<int>.Empty.Return().ValidateNoContentResult();
+        ImmutableList<int>.Empty
+            .Return()
+            .ValidateNoContentResult()
+            .IfFailThrow();
 
     [Test]
     public void Return_Option_ReturnsAnOkObjectResultForANonemptyCollection() =>
-        Integers.Return().ValidateOkObjectResult<int[]>()
+        Integers.Return()
+            .ValidateOkObjectResult<int[]>()
             .Bind(collection => collection.IsCollectionEqual(Integers))
             .IfFailThrow();
 
     [Test]
     public void Return_Option_ReturnsAnOkResultForUnit() =>
-        Unit.Default.Return().ValidateOkResult();
+        unit.Return()
+            .ValidateOkResult()
+            .IfFailThrow();
 
     [Test]
     public void Return_Option_ReturnsAnOkObjectResultForABasicObject() =>
-        3.Return().ValidateOkObjectResult<int>()
+        3.Return()
+            .ValidateOkObjectResult<int>()
             .Bind(result => result.IsEqual(3))
             .IfFailThrow();
 
