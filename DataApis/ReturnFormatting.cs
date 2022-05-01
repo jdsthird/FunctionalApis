@@ -11,7 +11,7 @@ public static class ReturnFormatting
         either.Match(Return, Return);
 
     private static IActionResult Return(this StatusCodeError error) =>
-        new ObjectResult(error.Log()) {StatusCode = (int) error.Code};
+        new ObjectResult(error.Message) {StatusCode = (int) error.Code};
     
     public static IActionResult Return<T>(this Option<T> option) =>
         option.Match(
