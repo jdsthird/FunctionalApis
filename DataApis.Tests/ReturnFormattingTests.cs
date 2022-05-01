@@ -30,7 +30,7 @@ public class ReturnFormattingTests
             .Return()
             .ValidateObjectResult<string>((int) ErrorStatusCode)
             .Bind(resultMessage => resultMessage.IsEqual(ErrorMessage))
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Either_ReturnsOnlyPublicDataWhenDataIsError() =>
@@ -38,14 +38,14 @@ public class ReturnFormattingTests
             .Return()
             .ValidateObjectResult<string>(500)
             .Bind(message => message.IsEqual(ExceptionResultMessage))
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Either_ReturnsANoContentResultForAnEmptyCollection() =>
         Right<StatusCodeError, ImmutableList<int>>(ImmutableList<int>.Empty)
             .Return()
             .ValidateNoContentResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Either_ReturnsAnOkObjectResultForANonemptyCollection() =>
@@ -53,14 +53,14 @@ public class ReturnFormattingTests
             .Return()
             .ValidateOkObjectResult<int[]>()
             .Bind(collection => collection.IsCollectionEqual(Integers))
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Either_ReturnsAnOkResultForUnit() =>
         Right<StatusCodeError, Unit>(unit)
             .Return()
             .ValidateOkResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Either_ReturnsAnOkObjectResultForABasicObject() =>
@@ -68,7 +68,7 @@ public class ReturnFormattingTests
             .Return()
             .ValidateOkObjectResult<int>()
             .Bind(result => result.IsEqual(3))
-            .IfFailThrow();
+            .Assert();
 
     #endregion
 
@@ -84,27 +84,27 @@ public class ReturnFormattingTests
         ImmutableList<int>.Empty
             .Return()
             .ValidateNoContentResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Data_ReturnsAnOkObjectResultForANonemptyCollection() =>
         Integers.Return()
             .ValidateOkObjectResult<int[]>()
             .Bind(collection => collection.IsCollectionEqual(Integers))
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Data_ReturnsAnOkResultForUnit() =>
         unit.Return()
             .ValidateOkResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Data_ReturnsAnOkObjectResultForABasicObject() =>
         3.Return()
             .ValidateOkObjectResult<int>()
             .Bind(result => result.IsEqual(3))
-            .IfFailThrow();
+            .Assert();
 
     #endregion
 
@@ -115,7 +115,7 @@ public class ReturnFormattingTests
         Option<int>.None
             .Return()
             .ValidateNotFoundResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Option_ThrowsExceptionWhenDataIsNull() =>
@@ -127,27 +127,27 @@ public class ReturnFormattingTests
         ImmutableList<int>.Empty
             .Return()
             .ValidateNoContentResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Option_ReturnsAnOkObjectResultForANonemptyCollection() =>
         Integers.Return()
             .ValidateOkObjectResult<int[]>()
             .Bind(collection => collection.IsCollectionEqual(Integers))
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Option_ReturnsAnOkResultForUnit() =>
         unit.Return()
             .ValidateOkResult()
-            .IfFailThrow();
+            .Assert();
 
     [Test]
     public void Return_Option_ReturnsAnOkObjectResultForABasicObject() =>
         3.Return()
             .ValidateOkObjectResult<int>()
             .Bind(result => result.IsEqual(3))
-            .IfFailThrow();
+            .Assert();
 
     #endregion
 }
