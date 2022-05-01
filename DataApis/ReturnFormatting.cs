@@ -21,13 +21,14 @@ public static class ReturnFormatting
     public static IActionResult Return<T>(this T data) =>
         data switch
         {
-            IEnumerable collection => collection.ReturnCollection(),
+            ICollection collection => collection.ReturnCollection(),
+            Unit => new OkResult(),
             object obj => obj.ReturnObject(),
             _ => throw new ArgumentOutOfRangeException(nameof(data), "Cannot be null."),
         };
 
-    private static IActionResult ReturnCollection<T>(this T data) where T : IEnumerable =>
-        data.GetEnumerator().Current is not null
+    private static IActionResult ReturnCollection<T>(this T data) where T : ICollection =>
+        data.Count < 1
             ? new NoContentResult()
             : data.ReturnObject();
 
