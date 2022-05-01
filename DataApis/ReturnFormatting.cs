@@ -23,7 +23,7 @@ public static class ReturnFormatting
         {
             IEnumerable collection => collection.ReturnCollection(),
             object obj => obj.ReturnObject(),
-            _ => throw new Exception("This should never happen"),
+            _ => throw new ArgumentOutOfRangeException(nameof(data), "Cannot be null."),
         };
 
     private static IActionResult ReturnCollection<T>(this T data) where T : IEnumerable =>
