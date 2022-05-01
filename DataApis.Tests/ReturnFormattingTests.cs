@@ -11,6 +11,8 @@ public class ReturnFormattingTests
 {
     private static readonly int[] Integers = {1, 2, 3};
 
+    #region Return Object
+
     [Test]
     public void Return_Data_ThrowsExceptionWhenDataIsNull() =>
         Assert.Throws<ArgumentOutOfRangeException>(() =>
@@ -21,11 +23,10 @@ public class ReturnFormattingTests
         ImmutableList<int>.Empty.Return().ValidateNoContentResult();
 
     [Test]
-    public void Return_Data_ReturnsAnOkObjectResultForANonemptyCollection()
-    {
-        var result = Integers.Return().ValidateOkObjectResult<int[]>();
-        CollectionAssert.AreEqual(Integers, result);
-    }
+    public void Return_Data_ReturnsAnOkObjectResultForANonemptyCollection() =>
+        Integers.Return().ValidateOkObjectResult<int[]>()
+            .Bind(collection => collection.IsCollectionEqual(Integers))
+            .IfFailThrow();
 
     [Test]
     public void Return_Data_ReturnsAnOkResultForUnit() =>
@@ -33,5 +34,42 @@ public class ReturnFormattingTests
 
     [Test]
     public void Return_Data_ReturnsAnOkObjectResultForABasicObject() =>
-        Assert.AreEqual(3, 3.Return().ValidateOkObjectResult<int>());
+        3.Return().ValidateOkObjectResult<int>()
+            .Bind(result => result.IsEqual(3))
+            .IfFailThrow();
+
+    #endregion
+
+    #region Return Option
+
+    [Test]
+    public void Return_Option_ReturnsNotFoundResultForNone() =>
+        Option<int>.None.Return().ValidateNotFoundResult();
+
+    [Test]
+    public void Return_Option_ThrowsExceptionWhenDataIsNull() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            ((object?) null).Return().ValidateOkObjectResult<object>());
+
+    [Test]
+    public void Return_Option_ReturnsANoContentResultForAnEmptyCollection() =>
+        ImmutableList<int>.Empty.Return().ValidateNoContentResult();
+
+    [Test]
+    public void Return_Option_ReturnsAnOkObjectResultForANonemptyCollection() =>
+        Integers.Return().ValidateOkObjectResult<int[]>()
+            .Bind(collection => collection.IsCollectionEqual(Integers))
+            .IfFailThrow();
+
+    [Test]
+    public void Return_Option_ReturnsAnOkResultForUnit() =>
+        Unit.Default.Return().ValidateOkResult();
+
+    [Test]
+    public void Return_Option_ReturnsAnOkObjectResultForABasicObject() =>
+        3.Return().ValidateOkObjectResult<int>()
+            .Bind(result => result.IsEqual(3))
+            .IfFailThrow();
+
+    #endregion
 }
