@@ -1,8 +1,7 @@
 # Functional APIs
 This repository is a development sandbox for applying functional programming to C# web APIs. I've used it to test ideas before applying them to professional code.
 
-## Features
-The core features I've attempted to include:
+## Current Features
 1. RESTful routes backed by a consistent data storage interface
     - `DataApis.ModelController` provides a RESTful template for individual model controllers.
     - `Data.Repositories.IRepository` provides a consistent CRUD interface that `ModelController` can wrap almost directly.
@@ -28,3 +27,14 @@ The core features I've attempted to include:
     - Sleek null checking with `CallerArgumentExpression` (used in `Utilities.ArgumentValidation.ThrowIfNull)`),
     - Though the functional style avoids the use of `null`, nullable reference types are enabled to help catch programmer errors and enforce the functional style, and
     - Utilizes `System.Text.Json` as its serialization platform, taking advantage of recent performance improvements.
+
+## Planned Features
+1. Logging
+    - Msft offers multiple logging implementations (`ITelemetryClient`, `ILogger`, etc.), but they all rely on extension methods for convenience, which cannot be easily mocked. Log calls are side effects, and should be unit tested. Therefore, it's important to wrap these interfaces with a custom (passthrough) implementation that can be easily mocked for testing.
+1. Dependency Injection
+    - While the default behavior in Azure Functions is to inject a logger as a parameter in each function, this approach will not work well with a custom logger as it would force each controller to perform the wrapping. It is much better to add a `Startup.cs` file to `PackingApi`, configure the loggers there, and injection them into controllers via their constructors.
+    - Reflection can be used to discover all the controllers in `PackingApi/Controllers`, register them in the DI container, and register a corresponding `ILogger<T>`.
+1. Add an ORM Database
+    - As a proof of concept, I implemented `IRepository<T>` using an in-memory dictionary. This works for establishing interfaces and local testing, but it's obviously not an enterprise grade solution. Ultimately, I want to add a dockerized database backend. This will likely bring with it an update to the `IQuery` interface as simple filtering won't be ideal.
+1. Make Repositories Async
+    - Because C# dictionaries perform their operations synchronously, there was no point in making operations asynchronous, but file IO and database operations are naturally performed asynchronously. So in the future I will update `IRepository<T>`'s methods to be asynchronous.
