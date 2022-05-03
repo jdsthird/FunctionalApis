@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Apis;
 using Data.Repositories;
 using LanguageExt;
@@ -18,37 +19,37 @@ public class ItemController : ModelController<Item, long, ItemQuery>
     public ItemController(IRepository<Item, long, ItemQuery> repo) : base(repo) {}
 
     [FunctionName("DeleteItem")]
-    public IActionResult DeleteItem(
+    public async Task<IActionResult> DeleteItemAsync(
         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "{id:long}")]
         HttpRequest req,
         long id,
-        ILogger<ItemController> logger) => Delete(id);
+        ILogger<ItemController> logger) => await DeleteAsync(id);
 
     [FunctionName("GetItem")]
-    public IActionResult GetItem(
+    public async Task<IActionResult> GetItemAsync(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{id:long")]
         HttpRequest req,
         long id,
-        ILogger<ItemController> logger) => Get(id);
+        ILogger<ItemController> logger) => await GetAsync(id);
 
     [FunctionName("GetItems")]
-    public IActionResult GetItems(
+    public async Task<IActionResult> GetItemsAsync(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "")]
         HttpRequest req,
         ILogger<ItemController> logger) =>
-        GetAll(ItemQuery.FromQueryParams(req.GetQueryParameterDictionary()));
+        await GetAllAsync(ItemQuery.FromQueryParams(req.GetQueryParameterDictionary()));
 
     [FunctionName("PostItem")]
-    public IActionResult PostItem(
+    public async Task<IActionResult> PostItemAsync(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "")]
         Item item,
-        ILogger<ItemController> logger) => Post(item);
+        ILogger<ItemController> logger) => await PostAsync(item);
 
     [FunctionName("PutItem")]
-    public IActionResult PutItem(
+    public async Task<IActionResult> PutItemAsync(
         [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "{id:long}")]
         Item item,
-        ILogger<ItemController> logger) => Put(item);
+        ILogger<ItemController> logger) => await PutAsync(item);
 }
 public record ItemQuery(Option<string> Name) : IQuery<Item>
 {

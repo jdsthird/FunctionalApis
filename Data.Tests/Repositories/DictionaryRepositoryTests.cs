@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Data.Models;
 using Data.Repositories;
 using LanguageExt;
@@ -29,86 +30,92 @@ public class DictionaryRepositoryTests
         return new TestModel(id, name);
     }
 
-    private static (TestRepo repo, ImmutableList<TestModel> models) Repo(params string[] names)
+    private static async Task<(TestRepo repo, ImmutableList<TestModel> models)> BuildRepoAsync(params string[] names)
     {
         var repo = new TestRepo(IdGenerator);
-        return (repo, names.Map(name => repo.Create(Model(name)).RightAsEnumerable().First()).ToImmutableList());
+        var (_, models) = await names.Map(name => repo.CreateAsync(Model(name)))
+            .Partition();
+        return (repo, models!.ToImmutableList());
     }
 
     [Test]
-    public void Create_ThrowsOnNullInput()
+    public async Task Create_ThrowsOnNullInputAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         Assert.Throws<NullReferenceException>(() =>
-            repo.Create(null!));
+            repo.CreateAsync(null!));
     }
 
     [Test]
-    public void Create_FailsIfModelIsPermanent()
+    public async Task Create_FailsIfModelIsPermanentAsync()
     {
-        var (repo, _) = Repo();
-        var result = repo.Create(Model(JaneDoe, true));
+        var (repo, _) = await BuildRepoAsync();
+        var result = await repo.CreateAsync(Model(JaneDoe, true));
         Assert.IsTrue(result.IsLeft);
         result.IfLeft(error => Assert.AreEqual(HttpStatusCode.BadRequest, error.Code));
     }
     
     [Test]
-    public void Create_SetsAPermanentId()
+    public async Task Create_SetsAPermanentIdAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         var temporary = new TestModel(Id<Guid>.TemporaryId(IdGenerator()), JaneDoe);
-        var (permanentId, permanentName) = repo.Create(temporary).RightAsEnumerable().First();
+        var either = await repo.CreateAsync(temporary);
+        Assert.IsTrue(either.IsRight);
+        var (permanentId, permanentName) = either.RightAsEnumerable().First();
         Assert.AreEqual(JaneDoe, permanentName);
         Assert.IsFalse(permanentId.IsTemporary);
         Assert.AreNotEqual(temporary.Id, permanentId);
     }
     
     [Test]
-    public void Create_AddsModelToItemsDictionary()
+    public async Task Create_AddsModelToItemsDictionaryAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         var temporary = Model(JaneDoe);
-        var permanent = repo.Create(temporary).RightAsEnumerable().First();
-        var read = repo.Read(permanent.Id);
+        var either = await repo.CreateAsync(temporary);
+        Assert.IsTrue(either.IsRight);
+        var permanent = either.RightAsEnumerable().First();
+        var read = await repo.ReadAsync(permanent.Id);
         Assert.AreEqual(permanent, (TestModel)read);
     }
 
     [Test]
-    public void Read_ThrowsIfIdIsNull()
+    public async Task Read_ThrowsIfIdIsNullAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         Assert.Throws<ArgumentNullException>(() =>
-            repo.Read(null!));
+            repo.ReadAsync(null!));
     }
 
     [Test]
-    public void Read_ReturnsNoneIfIdMissing()
+    public async Task Read_ReturnsNoneIfIdMissingAsync()
     {
-        var (repo, _) = Repo();
-        repo.Read(Id<Guid>.TemporaryId(IdGenerator())).IsErrorWithCode(HttpStatusCode.NotFound);
+        var (repo, _) = await BuildRepoAsync();
+        (await repo.ReadAsync(Id<Guid>.TemporaryId(IdGenerator()))).IsErrorWithCode(HttpStatusCode.NotFound);
     }
 
     [Test]
-    public void Read_ReturnsMatchingModel()
+    public async Task Read_ReturnsMatchingModelAsync()
     {
-        var (repo, models) = Repo(JaneDoe);
+        var (repo, models) = await BuildRepoAsync(JaneDoe);
         var model = models.Single();
-        Assert.AreEqual(model, (TestModel)repo.Read(model.Id));
+        Assert.AreEqual(model, (TestModel) await repo.ReadAsync(model.Id));
     }
 
     [Test]
-    public void ReadAll_ReturnsAllModelsIfNoQueryPassed()
+    public async Task ReadAll_ReturnsAllModelsIfNoQueryPassedAsync()
     {
-        var (repo, expectedModels) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
-        repo.ReadAll().IsValid(models =>
+        var (repo, expectedModels) = await BuildRepoAsync(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
+        (await repo.ReadAllAsync()).IsValid(models =>
         CollectionAssert.AreEquivalent(expectedModels, models));
     }
 
     [Test]
-    public void ReadAll_ReturnsCorrectModelsForQuery()
+    public async Task ReadAll_ReturnsCorrectModelsForQueryAsync()
     {
-        var (repo, _) = Repo(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
-        var result = repo.ReadAll(new TestQuery());
+        var (repo, _) = await BuildRepoAsync(JaneDoe, JaneSmith, JohnDoe, JohnSmith);
+        var result = await repo.ReadAllAsync(new TestQuery());
         result.IsValid(models =>
             CollectionAssert.AreEquivalent(
                 new[] {JaneDoe, JaneSmith},
@@ -116,71 +123,71 @@ public class DictionaryRepositoryTests
     }
 
     [Test]
-    public void Update_ErrorsIfModelIsNull()
+    public async Task Update_ErrorsIfModelIsNullAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         Assert.Throws<NullReferenceException>(() =>
-            repo.Update(null!));
+            repo.UpdateAsync(null!));
     }
 
     [Test]
-    public void Update_ErrorsIfModelIsTemporary()
+    public async Task Update_ErrorsIfModelIsTemporaryAsync()
     {
-        var (repo, _) = Repo();
-        var result = repo.Update(Model(JaneDoe));
+        var (repo, _) = await BuildRepoAsync();
+        var result = await repo.UpdateAsync(Model(JaneDoe));
         Assert.IsTrue(result.IsLeft);
         result.IfLeft(error => Assert.AreEqual(HttpStatusCode.BadRequest, error.Code));
     }
 
     [Test]
-    public void Update_ErrorsIfModelNotInRepository()
+    public async Task Update_ErrorsIfModelNotInRepositoryAsync()
     {
-        var (repo, _) = Repo();
-        var result = repo.Update(Model(JaneDoe, true));
+        var (repo, _) = await BuildRepoAsync();
+        var result = await repo.UpdateAsync(Model(JaneDoe, true));
         Assert.IsTrue(result.IsLeft);
         result.IfLeft(error => Assert.AreEqual(HttpStatusCode.BadRequest, error.Code));
     }
 
     [Test]
-    public void Update_ReturnsModelUnchangedWhenSuccessful()
+    public async Task Update_ReturnsModelUnchangedWhenSuccessfulAsync()
     {
-        var (repo, models) = Repo(JaneDoe);
+        var (repo, models) = await BuildRepoAsync(JaneDoe);
         var updatedModel = models.Single() with {Name = JaneSmith};
-        Assert.AreEqual(updatedModel, repo.Update(updatedModel));
+        Assert.AreEqual(updatedModel, await repo.UpdateAsync(updatedModel));
     }
 
     [Test]
-    public void Update_UpdatesModelInRepo()
+    public async Task Update_UpdatesModelInRepoAsync()
     {
-        var (repo, models) = Repo(JaneDoe);
+        var (repo, models) = await BuildRepoAsync(JaneDoe);
         var updatedModel = models.Single() with {Name = JaneSmith};
-        repo.Update(updatedModel);
-        Assert.AreEqual(updatedModel, (TestModel)repo.Read(updatedModel.Id));
+        await repo.UpdateAsync(updatedModel);
+        Assert.AreEqual(updatedModel, (TestModel) await repo.ReadAsync(updatedModel.Id));
     }
 
     [Test]
-    public void Destroy_ThrowsWhenIdIsNull()
+    public async Task Destroy_ThrowsWhenIdIsNullAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         Assert.Throws<ArgumentNullException>(() =>
-            repo.Destroy(null!));
+            repo.DestroyAsync(null!));
     }
 
     [Test]
-    public void Destroy_DoesNotErrorWhenModelNotInRepo()
+    public async Task Destroy_DoesNotErrorWhenModelNotInRepoAsync()
     {
-        var (repo, _) = Repo();
+        var (repo, _) = await BuildRepoAsync();
         var model = Model(JaneDoe);
-        Assert.AreEqual(Unit.Default, repo.Destroy(model.Id));
+        Assert.AreEqual(Unit.Default, await repo.DestroyAsync(model.Id));
     }
 
     [Test]
-    public void Destroy_RemovesModelFromRepo()
+    public async Task Destroy_RemovesModelFromRepoAsync()
     {
-        var (repo, models) = Repo(JaneDoe);
+        var (repo, models) = await BuildRepoAsync(JaneDoe);
         var (id, _) = models.Single();
-        repo.Destroy(id);
-        repo.Read(id).IsErrorWithCode(HttpStatusCode.NotFound);
+        await repo.DestroyAsync(id);
+        (await repo.ReadAsync(id)).IsErrorWithCode(HttpStatusCode.NotFound);
     }
 
     private record TestModel(Id<Guid> Id, string Name) : Model<Guid>(Id);

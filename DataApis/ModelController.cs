@@ -17,13 +17,15 @@ public class ModelController<TModel, TId, TQuery>
         _repo = repo.ThrowIfNull();
     }
 
-    protected IActionResult Get(TId id) => _repo.Read(Id<TId>.PermanentId(id)).Return();
+    protected async Task<IActionResult> GetAsync(TId id) =>
+        await _repo.ReadAsync(Id<TId>.PermanentId(id)).ReturnAsync();
 
-    protected IActionResult GetAll(TQuery query) => _repo.ReadAll(query).Return();
+    protected async Task<IActionResult> GetAllAsync(TQuery query) => await _repo.ReadAllAsync(query).ReturnAsync();
 
-    protected IActionResult Post(TModel model) => _repo.Create(model).Return();
+    protected async Task<IActionResult> PostAsync(TModel model) => await _repo.CreateAsync(model).ReturnAsync();
 
-    protected IActionResult Put(TModel model) => _repo.Update(model).Return();
+    protected async Task<IActionResult> PutAsync(TModel model) => await _repo.UpdateAsync(model).ReturnAsync();
 
-    protected IActionResult Delete(TId id) => _repo.Destroy(Id<TId>.PermanentId(id)).Return();
+    protected async Task<IActionResult> DeleteAsync(TId id) =>
+        await _repo.DestroyAsync(Id<TId>.PermanentId(id)).ReturnAsync();
 }

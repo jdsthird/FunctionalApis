@@ -21,7 +21,7 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         _idGenerator = idGenerator.ThrowIfNull();
     }
 
-    public Either<StatusCodeError, TModel> Create(TModel model)
+    public EitherAsync<StatusCodeError, TModel> CreateAsync(TModel model)
     {
         if (!model.Id.IsTemporary)
             return new StatusCodeError(HttpStatusCode.BadRequest, "Model already has a permanent id.");
@@ -30,15 +30,16 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         return _items[id] = model with {Id = id};
     }
 
-    public Either<StatusCodeError, TModel> Read(Id<TId> id) =>
-        _items.Get(id).ToEither(() => new StatusCodeError(HttpStatusCode.NotFound, $"Object not found with id {id}"));
+    public EitherAsync<StatusCodeError, TModel> ReadAsync(Id<TId> id) =>
+        _items.Get(id)
+            .ToEitherAsync(() => new StatusCodeError(HttpStatusCode.NotFound, $"Object not found with id {id}"));
 
-    public Either<StatusCodeError, ImmutableList<TModel>> ReadAll(Option<TQuery> query = default) =>
+    public EitherAsync<StatusCodeError, ImmutableList<TModel>> ReadAllAsync(Option<TQuery> query = default) =>
         query.Match(
             q => q.Filter(_items.Values),
             () => _items.Values.ToImmutableList());
 
-    public Either<StatusCodeError, TModel> Update(TModel model)
+    public EitherAsync<StatusCodeError, TModel> UpdateAsync(TModel model)
     {
         if (model.Id.IsTemporary)
             return new StatusCodeError(HttpStatusCode.BadRequest, "Model has not yet been created");
@@ -49,7 +50,7 @@ public class DictionaryRepository<TModel, TId, TQuery> : IRepository<TModel, TId
         return _items[model.Id] = model;
     }
 
-    public Either<StatusCodeError, Unit> Destroy(Id<TId> id)
+    public EitherAsync<StatusCodeError, Unit> DestroyAsync(Id<TId> id)
     {
         _items.Remove(id);
         return Unit.Default;

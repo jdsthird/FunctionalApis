@@ -10,9 +10,9 @@ public interface IRepository<TModel, TId, TQuery>
     where TId : notnull
     where TQuery : IQuery<TModel>
 {
-    Either<StatusCodeError, TModel> Create(TModel model);
-    Either<StatusCodeError, TModel> Read(Id<TId> id);
-    Either<StatusCodeError, ImmutableList<TModel>> ReadAll(Option<TQuery> query = default);
-    Either<StatusCodeError, TModel> Update(TModel model);
-    Either<StatusCodeError, Unit> Destroy(Id<TId> id);
+    EitherAsync<StatusCodeError, TModel> CreateAsync(TModel model);
+    EitherAsync<StatusCodeError, TModel> ReadAsync(Id<TId> id);
+    EitherAsync<StatusCodeError, ImmutableList<TModel>> ReadAllAsync(Option<TQuery> query = default);
+    EitherAsync<StatusCodeError, TModel> UpdateAsync(TModel model);
+    EitherAsync<StatusCodeError, Unit> DestroyAsync(Id<TId> id);
 }
