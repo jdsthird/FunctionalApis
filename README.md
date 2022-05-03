@@ -36,5 +36,5 @@ This repository is a development sandbox for applying functional programming to 
     - Reflection can be used to discover all the controllers in `PackingApi/Controllers`, register them in the DI container, and register a corresponding `ILogger<T>`.
 1. Add an ORM Database
     - As a proof of concept, I implemented `IRepository<T>` using an in-memory dictionary. This works for establishing interfaces and local testing, but it's obviously not an enterprise grade solution. Ultimately, I want to add a dockerized database backend. This will likely bring with it an update to the `IQuery` interface as simple filtering won't be ideal.
-1. Make Repositories Async
-    - Because C# dictionaries perform their operations synchronously, there was no point in making operations asynchronous, but file IO and database operations are naturally performed asynchronously. So in the future I will update `IRepository<T>`'s methods to be asynchronous.
+1. ~~Make Repositories Async~~ Clean up unit tests for `IRepository` and classes that consume it.
+    - The POC implementation of `IRepository` used synchronous methods because C# dictionaries are naturally synchronous. However, I recently updated it to reflect that IO is typically asynchronous. Both the code an related unit tests work, but there is a lot of room to clean up the tests in response to the design change.
